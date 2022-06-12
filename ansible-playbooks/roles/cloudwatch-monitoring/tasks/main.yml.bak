@@ -1,0 +1,49 @@
+---
+
+  - name: Install perl dependencies for EC2 Monitoring
+    apt: pkg={{ item }} state=latest
+    with_items:
+      - libwww-perl
+      - libdatetime-perl
+  - name: create scripts directory under deploy
+    file:
+      path: /home/deploy/scripts
+      state: directory
+      recurse: yes
+      owner: deploy
+      group: deploy
+      mode: 0755      
+  - name: Add webserver monitor script
+    copy: src=php-nginx-status.sh dest=/home/deploy/scripts/nginx_php_threads.sh owner=root group=root mode=0755      
+
+  - name: Download EC2 Monitoring scripts
+    get_url:
+      url:  http://aws-cloudwatch.s3.amazonaws.com/downloads/CloudWatchMonitoringScripts-1.2.1.zip
+      dest: /opt/redux/CloudWatchMonitoringScripts-1.2.1.zip
+      mode: 0770
+
+  - name: Install EC2 Monitoring scripts
+    unarchive:
+      src: /opt/redux/CloudWatchMonitoringScripts-1.2.1.zip
+      dest: /opt/redux/scripts
+      copy: no
+      owner: root
+      group: root
+
+  - name: Remove monitoring scripts zip file
+    file: path=/opt/redux/CloudWatchMonitoringScripts-1.2.1.zip state=absent
+
+  - name: Install EC2 Monitoring Cron Job
+    template:
+      src: ch_ec2_monitoring.j2
+      dest: /etc/cron.d/ch_ec2_monitoring
+      owner: root
+      group: root
+      mode: 0644
+  - name: Install webserver Monitoring Cron Job
+    template:
+      src: ch_webserver_monitoring.j2
+      dest: /etc/cron.d/ch_webserver_monitoring
+      owner: root
+      group: root
+      mode: 0644

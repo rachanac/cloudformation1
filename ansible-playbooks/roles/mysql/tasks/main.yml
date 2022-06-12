@@ -1,0 +1,8 @@
+---
+  - name: Install Mariadb Server
+    apt: pkg=mariadb-server state=latest
+
+  - name: restart Mariadb
+    service: name=mariadb state=restarted enabled=yes
+#    when: result is succeeded 
+#    ignore_errors: yes # continue with the playbook

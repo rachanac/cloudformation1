@@ -1,0 +1,25 @@
+---
+- name: Add elastic apt repo key (for all elastic software)
+  apt_key:
+   url: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+   state: present
+# Install filebeat as a logstash client (to deliver logs), just for demoing
+
+- name: Add filebeat apt repo
+  apt_repository:
+   repo: "deb https://artifacts.elastic.co/packages/6.x/apt stable main"
+   update_cache: yes
+   state: present
+
+- name: Install filebeat apt package
+  apt:
+   name: filebeat
+   state: present
+- name: Install Filebeat configuration file
+  copy: src=filebeat.yml dest=/etc/filebeat/filebeat.yml owner=root group=root mode=0644
+
+- name: Install Logstash SSL Certificate
+  copy: src=ca_logstash-forwarder.crt dest=/etc/filebeat/ca_logstash-forwarder.crt owner=root group=root mode=0644
+
+- name: Start Filebeat service
+  service: name=filebeat state=started enabled=true

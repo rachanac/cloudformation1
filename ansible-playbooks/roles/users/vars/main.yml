@@ -1,0 +1,10 @@
+---
+users:
+  - username: redux
+    use_sudo: yes
+
+  - username: deploy
+    use_sudo: yes
+
+#remove_users:
+#  - user: ubuntu 

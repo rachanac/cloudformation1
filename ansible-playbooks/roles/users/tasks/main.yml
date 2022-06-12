@@ -1,0 +1,25 @@
+- name: Create users
+  user: name={{ item.username}} shell=/bin/bash createhome=yes
+  with_items: '{{users}}'
+
+
+- name: Setup | authorized key upload
+  authorized_key: user={{ item.username }} key="{{ lookup('file', 'files/{{ item.username }}.pub') }}"
+  with_items: '{{users}}'
+
+
+- name: Sudoers | update sudoers file and validate
+  lineinfile: "dest=/etc/sudoers insertafter=EOF line='{{ item.username }} ALL=(ALL) NOPASSWD: ALL' regexp='^{{ item.username }} .*' state=present"
+  when: '{{ item.use_sudo }} == True'
+  with_items: '{{users}}'
+
+- name: Check if user exists
+  command: getent passwd {{ item.user }}
+  with_items: '{{ remove_users }}'
+  register: user_exist
+  ignore_errors: yes # continue with the playbook
+
+- name: Remove users
+  user: name={{ item.user }} state=absent  remove=yes
+  with_items: '{{ remove_users }}'
+  when: user_exist is succeeded

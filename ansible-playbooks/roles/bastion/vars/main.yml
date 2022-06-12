@@ -1,0 +1,12 @@
+---
+
+  users:
+    - username: deploy
+      use_sudo: yes
+    - username: redux
+      use_sudo: yes
+    - username: sftpuser
+      use_sudo: yes
+
+  remove_users:
+    - user: ec2-user

@@ -1,0 +1,15 @@
+# Bastion
+# --------------------------------------------------
+ntp1_server: 0.amazon.pool.ntp.org
+ntp2_server: 1.amazon.pool.ntp.org
+ntp3_server: 2.amazon.pool.ntp.org
+ntp4_server: 3.amazon.pool.ntp.org
+
+env_host_name: bastion-management-central-data-okindustrial
+env: Bastion
+env_backup_tag : ec2-management
+
+env_log_path: /efs-prod/debug/*.log
+
+#EFS
+efs_volume: "fs-0645dda045bd750a6.efs.us-east-2.amazonaws.com:"

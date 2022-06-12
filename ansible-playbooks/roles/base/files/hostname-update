@@ -1,0 +1,1 @@
+@reboot root /opt/redux/scripts/hostname_changer.sh

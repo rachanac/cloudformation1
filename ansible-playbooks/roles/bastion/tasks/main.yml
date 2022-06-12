@@ -1,0 +1,133 @@
+---
+  - name: Install system updates
+    yum: name='*' state=latest
+
+  - name: Set bashrc for root
+    copy: src=bashrc dest=/root/.bashrc  owner=root group=root mode=0644
+
+  - name: Set bash_profile for user accounts
+    copy: src=bash_profile dest=/etc/skel/.bash_profile owner=root group=root mode=0644
+
+  - name: Install basic system utilities
+    yum:
+      name:
+        - git
+        - dstat
+        - telnet
+        - bind-utils
+        - screen
+        - tmux
+        - net-tools
+        - wget
+        - curl
+        - mysql
+        - amazon-efs-utils
+        - nfs-utils
+        - httpd
+      state: present
+    become: True
+
+  - name: Set system hostname
+    hostname: name="{{ env_host_name}}"
+
+  - name: update /etc/hosts
+    lineinfile: "dest=/etc/hosts insertafter=BOF line='127.0.0.1 {{env_host_name}}'  state=present"
+
+  - name : set hostname on reboot
+    lineinfile: "dest=/etc/rc.local insertafter=^# line='hostname {{env_host_name}}' state=present"
+
+  - name: Create users
+    user: name={{ item.username }} shell=/bin/bash createhome=yes
+    with_items: '{{users}}'
+
+
+  - name: Setup | authorized key upload
+    authorized_key: user={{ item.username }} key="{{ lookup('file', 'files/{{ item.username }}.pub') }}"
+    with_items: '{{users}}'
+
+
+  - name: Sudoers | update sudoers file and validate
+    lineinfile: "dest=/etc/sudoers insertafter=EOF line='{{ item.username }} ALL=(ALL) NOPASSWD: ALL' regexp='^{{ item.username }} .*' state=present"
+    when: '{{ item.use_sudo }} == True'
+    with_items: '{{users}}'
+
+  - name: Check if user exists
+    command: getent passwd {{ item.user }}
+    with_items: '{{ remove_users }}'
+    register: user_exist
+
+  - name: Remove users
+    user: name={{ item.user }} state=absent remove=yes
+    with_items: '{{ remove_users }}'
+    when: user_exist is succeeded
+
+  - name: Enable agent forwarding
+    copy: src=agent_forwarding.conf dest=/home/{{ item.username }}/.ssh/config owner={{ item.username }} group={{ item.username }} mode=600
+    with_items: '{{users}}'
+
+  - name: Install ntp on SSH bastion node
+    yum: name=ntp state=installed
+
+  - name: Copy NTP configuration
+    template: src=ntp.conf.j2 dest=/etc/ntp.conf
+
+  - name: Start NTP client
+    service: name=ntpd state=started enabled=yes
+
+  - name: Copy sshd configuration file
+    copy: src=sshd_config dest=/etc/ssh/sshd_config owner=root group=root mode=0600
+
+  - name: Enable SSH service in system startup
+    service: name=sshd state=restarted enabled=yes
+
+  - name: Install motd
+    template: src=etc_motd.j2 dest=/etc/motd owner=root group=root mode=0644
+
+  - name: Enable HTTPD service in system startup
+    service: name=httpd state=restarted enabled=yes
+
+  - name: create /opt/redux and /opt/redux/scripts directory
+    file:
+      path: /opt/redux/scripts
+      state: directory
+      recurse: yes
+      owner: root
+      group: root
+      mode: 0755
+
+#  - name: Download and extract phpMyadmin 
+#    unarchive:
+#      src: https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz
+#      dest: /var/www/html
+#      remote_src: yes
+
+#  - name: Move phpMyadmin directory
+#    shell: 'mv /var/www/html/phpMyAdmin-5.0.2-all-languages /var/www/html/phpmyadmin && chown -R apache.apache /var/www/html/phpmyadmin/'
+
+#  - name: Remove unwanted phpmyadmin directory
+#    file:
+#      path: /var/www/html/phpMyAdmin-5.0.2-all-languages
+#      state: absent
+
+  - name: Copying phpMyadmin conf
+    copy: src=config.inc.php dest=/var/www/html/phpmyadmin/config.inc.php owner=apache group=apache mode=0644
+
+  - name: Copying htaccess
+    copy: src=htaccess dest=/var/www/html/phpmyadmin/.htaccess owner=apache group=apache mode=0644
+
+  - name: Copying apache configs
+    copy: src=dbadmin.okindustrial.com.conf.80 dest=/etc/httpd/conf.d/dbadmin.okindustrial.com.conf.80 owner=root group=root mode=0644
+
+  - name: Copying list_instances script
+    copy: src=list_instances dest=/usr/bin/list_instances owner=root group=root mode=0755
+
+  - name: Install PHP
+    shell: 'amazon-linux-extras install php7.2'
+
+  - name: Install PHP modules
+    yum:
+      name:
+        - php-mbstring
+      state: present
+    become: True
+

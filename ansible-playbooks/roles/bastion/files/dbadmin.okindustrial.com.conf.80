@@ -1,0 +1,12 @@
+<VirtualHost *:80>
+
+	ServerName dbadmin.okindustrial.com.com
+	DocumentRoot /var/www/html/phpmyadmin
+
+
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    LogFormat "%h %l %u %t \"%r\" %>s %b" common
+    CustomLog "logs/access_log" combined
+    ErrorLog "logs/error_log"
+
+</VirtualHost>

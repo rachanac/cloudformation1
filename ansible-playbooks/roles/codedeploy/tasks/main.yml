@@ -1,0 +1,20 @@
+---
+# tasks file for aptoma.aws-codedeploy
+- name: Install Packages
+  become: true
+  apt:
+    state: latest
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - ruby
+
+- name: Download CodeDeploy Agent
+  get_url:
+    url: "https://aws-codedeploy-{{ aws_region }}.s3.amazonaws.com/latest/install"
+    dest: /tmp/codedeploy-install
+    mode: 0755
+
+- name: Codedeploy Install
+  become: true
+  command: /tmp/codedeploy-install auto

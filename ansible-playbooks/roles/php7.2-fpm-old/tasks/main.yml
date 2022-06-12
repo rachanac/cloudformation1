@@ -1,0 +1,55 @@
+---
+  - name: Install php7
+    apt: pkg=php state=latest update_cache=yes cache_valid_time=3600
+    tags: [ 'packages' ]
+  - name: Install mcrpt packages
+    apt: pkg={{ item }} state=latest
+    with_items:
+      - php-dev
+      - libmcrypt-dev
+      - php-pear
+    tags: ['packages']
+  - name: Install PHP modules
+    apt: pkg={{ item }} state=latest
+    with_items:
+      - php-mysql
+      - php-fpm
+      - php-dom
+      - php-gd
+      - php-json
+      - php-pdo
+      - php-curl
+      - php-xml
+      - php-mbstring
+      - php-cli
+      - php-common
+      - php-intl
+      - php-bz2
+      - php-xsl
+      - php-zip
+      - php-redis
+      - php-common
+      - php-simplexml
+      - php-bcmath
+      - php-iconv
+      - php-soap
+      - php-dev
+
+  - name: Adding mcrypt using pecl
+    shell: 'pecl install mcrypt-1.0.1'
+    ignore_errors: true
+
+  - name: Add php-fpm configuration files
+    template: src=www.conf.j2 dest=/etc/php/7.2/fpm/pool.d/www.conf owner=root group=root mode=0644
+    notify: Restart php-fpm
+
+  - name: Copy fpm/php.ini file
+    template: src=php.ini.j2 dest=/etc/php/7.2/fpm/php.ini owner=root group=root mode=0644
+    notify: Restart php-fpm
+
+  - name: Copy cli/php.ini file
+    template: src=php.ini.j2 dest=/etc/php/7.2/cli/php.ini owner=root group=root mode=0644
+    notify: Restart php-fpm
+
+  - name: Start php-fpm service
+    service: name=php7.2-fpm state=started  enabled=yes

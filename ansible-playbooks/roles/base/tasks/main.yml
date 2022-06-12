@@ -1,0 +1,64 @@
+---
+  - name: set timezone to PDT/PST  timezone
+    timezone: name=America/Los_Angeles
+
+  - name: Install system updates
+    apt: update_cache=yes upgrade=dist cache_valid_time=1800
+
+  - name: Install common managment utilities
+    apt: pkg={{ item }} state=latest
+    with_items:
+      - screen
+      - git
+      - sysstat
+      - unzip
+      - mysql-client
+      - awscli
+      - nfs-common
+    tags: ['packages']
+
+  - name: Remove apparmor
+    apt:  pkg=apparmor state=absent
+    tags: ['packages']
+
+  - name: create /opt/redux and /opt/redux/scripts directory
+    file:
+      path: /opt/redux/scripts
+      state: directory
+      recurse: yes
+      owner: root
+      group: root
+      mode: 0755
+
+  - name: Copy hostname_changer.sh script
+    template: src=hostname_changer.sh.j2 dest=/opt/redux/scripts/hostname_changer.sh owner=root group=root mode=0755
+
+  - name: Add cron to set hostname on reboot
+    copy: src=hostname-update dest=/etc/cron.d/hostname-update owner=root group=root mode=0755
+
+  - name: configure rc.local
+    template: src=rc.local dest=/etc/rc.local owner=root group=root mode=0644
+
+  - name: Update /etc/rc.local to include hostname_changer.sh
+    lineinfile: dest=/etc/rc.local line="/bin/bash  /opt/redux/scripts/hostname_changer.sh " insertbefore="exit 0" state=present
+
+  - name: Set system hostname
+    shell: /opt/redux/scripts/hostname_changer.sh
+
+  - name: Install ntp on server
+    apt: name=ntp state=latest
+
+  - name: Copy NTP configuration
+    template: src=ntp.conf.j2 dest=/etc/ntp.conf
+
+  - name: Start NTP client
+    service: name=ntp state=started enabled=yes
+
+  - name: Set bashrc for root
+    copy: src=bashrc dest=/root/.bashrc  owner=root group=root mode=0644
+
+  - name: Set bash_profile for user accounts
+    copy: src=bash_profile dest=/etc/skel/.bash_profile owner=root group=root mode=0644
+
+  - name: Install motd
+    template: src=etc_motd.j2 dest=/etc/motd owner=root group=root mode=0644

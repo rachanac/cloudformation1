@@ -1,0 +1,5 @@
+[development]
+#10.20.10.26 ansible_python_interpreter=/usr/bin/python3 
+#127.0.0.1 ansible_connection=local ansible_python_interpreter=/usr/bin/python3 
+10.20.10.167 ansible_python_interpreter=/usr/bin/python3
+#10.20.20.223 ansible_python_interpreter=/usr/bin/python3

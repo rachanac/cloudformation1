@@ -1,0 +1,8 @@
+export PS1="\[\e[31m\]\u\[\e[m\]@\[\e[31m\]\h\[\e[m\] \t \[\e[32m\]\w\[\e[m\] \[\e[31m\]\\$\[\e[m\] "
+umask 022
+export EDITOR=vim
+export HISTTIMEFORMAT="%d/%m/%y %T "
+
+alias psf='ps fax -o pid,pgid,start,stat,cmd'
+alias psu='ps fU $(id -u) -o ruser,pid,pgid,start,stat,cmd'
+alias dusn='du -smc * |sort -n'

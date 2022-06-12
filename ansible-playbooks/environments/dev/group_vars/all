@@ -1,0 +1,27 @@
+# Base
+# --------------------------------------------------
+ntp1_server: 0.amazon.pool.ntp.org
+ntp2_server: 1.amazon.pool.ntp.org
+ntp3_server: 2.amazon.pool.ntp.org
+ntp4_server: 3.amazon.pool.ntp.org
+
+env : Development
+env_host_name: web-development-okindustrial
+env_backup_tag : ec2-development
+
+# PHP-FPM
+# --------------------------------------------------
+max_children: 50
+start_servers: 5
+min_spare_servers: 5
+max_spare_servers: 35
+max_requests: 900
+
+
+#Nginx
+# --------------------------------------------------
+env_domain_name: dev-store.okindustrial.com
+env_log_path: /shared-storage/debug/*.log
+
+#EFS
+efs_volume: "fs-83339dfb.efs.us-east-2.amazonaws.com:"

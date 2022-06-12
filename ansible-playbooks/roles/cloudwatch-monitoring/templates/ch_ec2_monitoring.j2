@@ -1,0 +1,3 @@
+# {{ ansible_managed }}
+
+*/5 * * * * root  /opt/redux/scripts/aws-scripts-mon/mon-put-instance-data.pl --mem-util --disk-space-util --disk-path=/ --auto-scaling  > /dev/null 2>&1 --from-cron

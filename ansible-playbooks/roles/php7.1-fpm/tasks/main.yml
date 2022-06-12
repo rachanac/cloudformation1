@@ -1,0 +1,42 @@
+---
+  - name: Add ondrej/php PPA
+    apt_repository: repo='ppa:ondrej/php' state=present update_cache=yes
+  - name: Install php7
+    apt: pkg=php7.1 state=latest update_cache=yes cache_valid_time=3600
+    tags: [ 'packages' ]
+  - name: Install PHP modules
+    apt: pkg={{ item }} state=latest
+    with_items:
+      - php7.1-bz2
+      - php7.1-curl
+      - php7.1-dom
+      - php7.1-fpm
+      - php7.1-gd
+      - php7.1-mbstring
+      - php7.1-mysql
+      - php7.1-mysqlnd
+      - php7.1-pdo
+      - php7.1-sqlite3
+      - php7.1-zip
+
+
+  - name: Add php-fpm configuration files
+    template: src=www.conf.j2 dest=/etc/php/7.1/fpm/pool.d/www.conf owner=root group=root mode=0644
+    notify: Restart php7.1-fpm
+
+  - name: Copy  Sourceguardian script
+    template: src=sourceguardian.sh dest=/opt/redux/scripts/sourceguardian.sh owner=root group=root mode=0755
+
+  - name: Run sourceguardian script
+    shell: /opt/redux/scripts/sourceguardian.sh
+
+  - name: Copy fpm/php.ini file
+    template: src=php.ini.j2 dest=/etc/php/7.1/fpm/php.ini owner=root group=root mode=0644
+    notify: Restart php7.1-fpm
+
+  - name: Copy cli/php.ini file
+    template: src=php.ini.j2 dest=/etc/php/7.1/cli/php.ini owner=root group=root mode=0644
+    notify: Restart php7.1-fpm
+
+  - name: Start php-fpm service
+    service: name=php7.1-fpm state=started  enabled=yes
