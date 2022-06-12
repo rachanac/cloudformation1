@@ -1,0 +1,263 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  Environment:
+    Description: Test Environment
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/build/environment/test'
+  Client:
+    Description: Client Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/client'
+  BitbucketConnectionARN:
+    Description: BitbucketConnectionARN Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/connectionarn'
+  Repository:
+    Description: Repository Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/repository'
+  Branch:
+    Description: Branch Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/branch' 
+Resources:
+  CodePipelineTrustRole:
+    Description: Creating service role in IAM for AWS CodePipeline
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Client}-${Environment}-codepipeline-role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+  CodePipelineRolePolicy:
+    Type: AWS::IAM::Policy
+    DependsOn: CodePipelineTrustRole
+    Description: Setting IAM policy for the service role for AWS CodePipeline
+    Properties:
+      PolicyName: !Sub '${Client}-${Environment}-codepipeline-role-policy'
+      PolicyDocument:
+        Statement:
+          - Action:
+              - iam:PassRole
+            Resource: "*"
+            Effect: Allow
+            Condition:
+              StringEqualsIfExists:
+                iam:PassedToService:
+                - cloudformation.amazonaws.com
+                - elasticbeanstalk.amazonaws.com
+                - ec2.amazonaws.com
+                - ecs-tasks.amazonaws.com
+          - Action:
+              - codecommit:CancelUploadArchive
+              - codecommit:GetBranch
+              - codecommit:GetCommit
+              - codecommit:GetUploadArchiveStatus
+              - codecommit:UploadArchive
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - codedeploy:CreateDeployment
+              - codedeploy:GetApplication
+              - codedeploy:GetApplicationRevision
+              - codedeploy:GetDeployment
+              - codedeploy:GetDeploymentConfig
+              - codedeploy:RegisterApplicationRevision
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - codestar-connections:UseConnection
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - elasticbeanstalk:*
+              - ec2:*
+              - elasticloadbalancing:*
+              - autoscaling:*
+              - cloudwatch:*
+              - s3:*
+              - sns:*
+              - cloudformation:*
+              - rds:*
+              - sqs:*
+              - ecs:*
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - lambda:InvokeFunction
+              - lambda:ListFunctions
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - opsworks:CreateDeployment
+              - opsworks:DescribeApps
+              - opsworks:DescribeCommands
+              - opsworks:DescribeDeployments
+              - opsworks:DescribeInstances
+              - opsworks:DescribeStacks
+              - opsworks:UpdateApp
+              - opsworks:UpdateStack
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:UpdateStack
+              - cloudformation:CreateChangeSet
+              - cloudformation:DeleteChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:SetStackPolicy
+              - cloudformation:ValidateTemplate
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - codebuild:BatchGetBuilds
+              - codebuild:StartBuild
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - devicefarm:ListProjects
+              - devicefarm:ListDevicePools
+              - devicefarm:GetRun
+              - devicefarm:GetUpload
+              - devicefarm:CreateUpload
+              - devicefarm:ScheduleRun
+            Resource: "*"
+            Effect: Allow            
+          - Action:
+              - servicecatalog:ListProvisioningArtifacts
+              - servicecatalog:CreateProvisioningArtifact
+              - servicecatalog:DescribeProvisioningArtifact
+              - servicecatalog:DeleteProvisioningArtifact
+              - servicecatalog:UpdateProduct
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - cloudformation:ValidateTemplate
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - ecr:DescribeImages
+            Resource: "*"
+            Effect: Allow
+          - Action:
+              - states:DescribeExecution
+              - states:DescribeStateMachine
+              - states:StartExecution
+            Resource: "*"
+            Effect: Allow
+      Roles:
+        - !Ref 'CodePipelineTrustRole'
+
+  CodeDeployRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${Client}-${Environment}-codedeploy-role-policy'
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:*
+              - sns:Publish
+              - s3:*
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:PutMetricAlarm
+              - tag:GetResources
+            Resource:
+              - '*'
+#          - Effect: Allow
+#            Action:
+#              - autoscaling:*
+#              - elasticloadbalancing:
+#
+#            Resource:
+#              - '*'
+      Roles:
+        - !Ref 'CodeDeployTrustRole'
+  CodeDeployTrustRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${Client}-${Environment}-deploy-ec2-role'
+      Path: /
+      AssumeRolePolicyDocument:
+        Statement:
+          - Sid: '1'
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole'          
+  CoreApiApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ComputePlatform: Server
+      ApplicationName: !Sub '${Client}-${Environment}-application'
+  DeploymentConfig:
+    Type: AWS::CodeDeploy::DeploymentConfig
+    Properties:
+      MinimumHealthyHosts:
+        Type: HOST_COUNT
+        Value: '1'
+  CoreApiDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref CoreApiApplication
+      DeploymentGroupName: !Sub '${Client}-${Environment}-application-group'
+      Ec2TagFilters:
+        - Type: KEY_AND_VALUE
+          Key: Deployment
+          Value: !Sub '${Environment}-codedeploy'      
+      ServiceRoleArn: !GetAtt 'CodeDeployTrustRole.Arn'
+#      ServiceRoleArn  : arn:aws:iam::569177097303:role/CodeDeployServiceRole
+  ArtifactStoreS3Bucket:
+    Description: Creating Amazon S3 bucket for AWS CodePipeline artifacts
+    Type: AWS::S3::Bucket
+  CorePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Sub '${Client}-${Environment}-pipeline'
+      RoleArn: !GetAtt 'CodePipelineTrustRole.Arn'
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactStoreS3Bucket
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: Source
+              InputArtifacts: []
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: '1'
+                Provider: CodeStarSourceConnection
+              Configuration:
+                ConnectionArn: !Sub '${BitbucketConnectionARN}'
+                FullRepositoryId: !Sub '${Repository}'
+                BranchName: !Sub '${Branch}'
+              OutputArtifacts:
+                - Name: sourceoutput
+              RunOrder: 1
+        - Name: Deploy
+          Actions:
+            - Name: Deploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: 1
+                Provider: CodeDeploy
+              InputArtifacts:
+                - Name: sourceoutput
+              Configuration:
+                ApplicationName: !Ref CoreApiApplication
+                DeploymentGroupName: !Ref CoreApiDeploymentGroup
+              RunOrder: 1
+      

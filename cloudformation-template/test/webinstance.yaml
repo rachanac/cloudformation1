@@ -1,0 +1,102 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CloudFormation - Test - Web Stack '
+
+Parameters:
+  Environment:
+    Description: Test Environment
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/build/environment/test'
+  Client:
+    Description: Client Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/client'
+  AvailabiltyZone1:
+    Description: Set Availability Zone 1
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/AvailabiltyZone1'
+  AvailabiltyZone2:
+    Description: Set Availability Zone 2
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/AvailabiltyZone2'
+
+  KeyPairName:
+    Description: Key file used to SSH into servers
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/KeyPairName'
+
+  InstanceType:
+    Description: 'Name of Parameter to define the instance type.'
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/instancetype'  
+  VolumeSize:  
+    Description: 'Name of Parameter to define the volumesize.'
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/volumesize' 
+  WebAMI:  
+    Description: 'Name of Parameter to define the AMI.'
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/AMI' 
+
+Resources:
+  Ec2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !Ref WebAMI
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Sub 'iam-${Client}-web-profile'         
+      BlockDeviceMappings:
+        -
+          DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeType: "gp2"
+            DeleteOnTermination: "true"
+            VolumeSize: !Ref VolumeSize
+            Encrypted: "true"
+      UserData:
+        'Fn::Base64':
+          !Sub |
+            #!/bin/bash -xe
+            adduser redux
+            echo "redux ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/redux
+            mkdir -p /home/redux/.ssh
+            chown redux.redux /home/redux/.ssh
+            touch /home/redux/.ssh/authorized_keys
+            echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDRsOUN8apVfC6rASu8KxrH76NqzCCYcxyxJCx07T2i9xK/M5REibquLhJrEoQI6K43/wTNybFSrrn94EnChMa0thQGWYjUbphJfQI1L01jYWe7hVFFzDZHwstmU4Yp/wC2Ld+SxcJWMJSS4M60DOmxHz3HFZV5xWCRyStftcBDbIGoAY4y4PBRgXlOxn2UBzxvnpPby0q8ZUyimNtjVHKu3FxfojJgl2X2BUxJsAKzHlOk88XzJ4uBh2BrMFHnamzEhxEkYf0ZGmpyoQGgdUgeUejXVNAqgSyzSud28BV2pn5uCq1AmdYnsY7qDdmYtk+om9EKJgpme6qVKGWOBKdbseNlr2YfofVIcl5Wu74LBQjQV2TJLEM7TtZJJw3ftR00w9JPu635hSFmyiKws+CxSjr62EbATtbVgMoFRhr2+BAG+4sthjycKS89AFYdxu+w/YHDLLbrQkwPo1U+54hEFv1FDU17He4KrB71d4bYX82MKFKKDw0NGDodGfvg0/kIJTybL0yAY3AKIgxcEQpSoncrqR1m1KADbUFC/qi6gdInCEWwhUnDA9CspXbgxzG45lH/wY1GVFocCTbwK+GJxuO0bpPbA4rze493h+gQTx4hbFCcUz+B2izbi4fxcdtzgncHcIKUCnvsfjDYiQ0XbBl5I2zWR0AC78lQ5IhyKQ== support@bastion.redux.co" >> /home/redux/.ssh/authorized_keys
+            chown redux.redux /home/redux/.ssh/authorized_keys
+            chmod 700 /home/redux/.ssh
+            chmod 600 /home/redux/.ssh/authorized_keys               
+
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "False"
+          DeviceIndex: "0"
+          GroupSet:
+            - Fn::ImportValue:
+                Fn::Sub: 'sgrp-${Environment}-${Client}-ssh'
+            - Fn::ImportValue:
+                Fn::Sub: 'sgrp-${Environment}-${Client}-web'
+            - Fn::ImportValue:
+                Fn::Sub: 'sgrp-${Environment}-${Client}-mysql'                              
+          SubnetId:
+              Fn::ImportValue:
+               !Sub 'subnet-${Environment}-${Client}-public-${AWS::Region}-az1'
+      Tags:
+      - Key: Name
+        Value: !Sub 'webserver-${Environment}-${Client}'
+      - Key: Environment
+        Value: Test
+      - Key: Deployment
+        Value: test-codedeploy       
+  IPAddress:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      InstanceId:
+        Ref: "Ec2Instance"
+  IPAssoc:
+    Type: "AWS::EC2::EIPAssociation"
+    Properties:
+      InstanceId:
+        Ref: "Ec2Instance"
+      EIP:
+        Ref: "IPAddress"

@@ -1,0 +1,91 @@
+{
+    "variables" : {
+        "region": "",
+        "instance_type": "",
+        "ssh_username": "",
+        "env_type": "",
+        "ssh_keypair_name": "",
+        "vpc_id": "",
+        "ssh_private_key_file": "",
+        "security_group_id": "",
+        "source_ami": "",
+        "playbook_file": "",
+        "group_vars": "",
+        "inventory_file": "",
+        "base_role_paths": "",
+        "apache_role_paths": "",
+        "users_role_paths": ""
+    },
+    "builders" : [
+        {
+            "type" : "amazon-ebs",
+            "profile" : "default",
+            "region" : "{{user `region`}}",
+            "instance_type" : "{{user `instance_type`}}",
+            "source_ami" : "{{user `source_ami`}}",
+            "ssh_username" : "{{user `ssh_username`}}",
+            "ami_name" : "{{user `env_type`}}-{{timestamp}}",
+            "ami_description" : "Webserver",
+            "associate_public_ip_address": "true",
+            "ssh_interface": "private_ip",
+            "ssh_keypair_name" : "{{user `ssh_keypair_name`}}",
+            "vpc_id": "{{user `vpc_id`}}",
+            "subnet_id": "{{user `subnet_id`}}",
+            "ssh_private_key_file": "{{user `ssh_private_key_file`}}",
+            "security_group_id" : "{{user `security_group_id`}}",
+            "launch_block_device_mappings": [
+                {
+                  "device_name": "/dev/xvda",
+                  "volume_size": 50,
+                  "volume_type": "gp2",
+                  "delete_on_termination": true
+                }
+              ],
+            "run_tags" : {
+                "Name" : "packer-builder-webserver",
+                "Tool" : "Packer",
+                "Environment"  : "production",
+		"Deployment" : "production-codedeploy"
+                
+            }
+        }
+    ],
+
+"provisioners": [
+    {
+        "type": "shell",
+        "inline": [
+	    "sudo apt clean",	
+	    "sudo apt-get update",	
+            "sudo apt-get install software-properties-common",
+            "sudo add-apt-repository --yes --update ppa:ansible/ansible",
+            "sudo apt-get install ansible -y",    
+            "mkdir -p /tmp/packer-provisioner-ansible-local/"
+        ]
+    }, 
+    {
+        "type": "ansible-local",
+        "playbook_file": "{{user `playbook_file`}}",
+        "group_vars": "{{user `group_vars`}}",
+        "inventory_file": "{{user `inventory_file`}}",
+        "role_paths": [
+            "{{user `base_role_paths`}}",
+            "{{user `users_role_paths`}}",
+            "{{user `efs_mount_role_paths`}}",
+            "{{user `php_fpm_role_paths`}}",
+            "{{user `apache_role_paths`}}",
+	    "{{user `cloudwatch_monitoring_role_paths`}}",
+	    "{{user `codedeploy_role_paths`}}"
+        ]
+         
+    }
+  ],
+
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "{{user `manifest_location`}}",
+      "strip_path": true
+    }
+    ]
+}

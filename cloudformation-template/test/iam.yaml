@@ -1,0 +1,101 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: Network Redux  - IAM Stack - Creates BastionRole,WebRole
+
+Parameters:
+  Client:
+    Description: Client Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/client'  
+
+Resources:
+
+  CreateTagRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${Client}-createtag-role-policy'
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudwatch:PutMetricData
+              - ec2:DescribeTags
+              - ec2:CreateTags
+              - logs:PutLogEvents
+              - logs:DescribeLogStreams
+              - logs:DescribeLogGroups
+              - logs:CreateLogStream
+              - logs:CreateLogGroup             
+            Resource:
+              - '*'
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:PutParameter
+            Resource: arn:aws:ssm:*:*:parameter/AmazonCloudWatch-*
+      Roles:
+        - !Ref 'BastionRole'
+        - !Ref 'WebRole'
+  CreateSGRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub '${Client}-ssl-sg-policy'
+      PolicyDocument:            
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:AuthorizeSecurityGroupEgress
+              - ec2:AuthorizeSecurityGroupIngress
+              - ec2:DeleteSecurityGroup
+              - ec2:RevokeSecurityGroupEgress
+              - ec2:RevokeSecurityGroupIngress
+            Resource: arn:aws:ec2:*:*:security-group/*
+      Roles:
+        - !Ref 'BastionRole'        
+  BastionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub 'iam-${Client}-bastion-role'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
+  WebRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub 'iam-${Client}-web-role'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'
+  BastionInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Sub 'iam-${Client}-bastion-profile'
+      Path: /
+      Roles:
+        - Ref: BastionRole
+  WebInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Sub 'iam-${Client}-web-profile'
+      Path: /
+      Roles:
+        - Ref: WebRole

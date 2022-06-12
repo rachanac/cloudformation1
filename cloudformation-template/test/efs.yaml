@@ -1,0 +1,94 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Network Redux CloudFormation - Test - EFS Stack '
+
+Parameters:
+  Environment:
+    Description: Test Environment
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/build/environment/test'
+  Client:
+    Description: Client Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/client'
+  AvailabiltyZone1:
+    Description: Set Availability Zone 1
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/AvailabiltyZone1'
+  AvailabiltyZone2:
+    Description: Set Availability Zone 2
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/test/AvailabiltyZone2'
+
+
+Resources:
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      PerformanceMode: generalPurpose
+      Encrypted: true
+      KmsKeyId: !GetAtt
+        - key
+        - Arn
+      FileSystemTags:
+      - Key: Name
+        Value: !Sub 'efs-${Environment}-${Client}'
+      - Key: Environment
+        Value: Test
+  key:
+    Type: AWS::KMS::Key
+    Properties:
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: key-default-1
+        Statement:
+          - Sid: Allow administration of the key
+            Effect: Allow
+            Principal:
+              AWS: !Join
+                - ''
+                - - 'arn:aws:iam::'
+                  - !Ref 'AWS::AccountId'
+                  - ':root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+  PrivateSubnet1MountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: FileSystem
+      SubnetId:
+          Fn::ImportValue:
+           !Sub 'subnet-${Environment}-${Client}-private-${AWS::Region}-az1'
+      SecurityGroups: [{"Fn::ImportValue" : {"Fn::Sub" :  "sgrp-${Environment}-${Client}-efs"}}]
+
+  PrivateSubnet2MountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: FileSystem
+      SubnetId:
+          Fn::ImportValue:
+           !Sub 'subnet-${Environment}-${Client}-private-${AWS::Region}-az1'
+      SecurityGroups: [{"Fn::ImportValue" : {"Fn::Sub" :  "sgrp-${Environment}-${Client}-efs"}}]
+
+Outputs:
+  PrivateSubnet1MountTargetID:
+    Description: Private Subnet 1 Mount target ID
+    Value:
+      Ref: PrivateSubnet1MountTarget
+  PrivateSubnet2MountTargetID:
+    Description: Private Subnet 2 Mount target ID
+    Value:
+      Ref: PrivateSubnet2MountTarget
+  FileSystemID:
+    Description: File system ID
+    Value:
+      Ref: FileSystem
+    Export:
+      Name: !Sub 'efs-${Environment}-${Client}' 
+  KeyId:
+    Value: !GetAtt
+      - key
+      - Arn

@@ -1,0 +1,24 @@
+{
+    "region": "us-east-2",
+    "instance_type": "m5.large",
+    "ssh_username": "ubuntu",
+    "env_type": "prod",
+    "ssh_keypair_name": "key-okindustrial-us-east-2.pub",
+    "vpc_id": "vpc-09f5bcc296fc5a608",
+    "subnet_id": "subnet-0ab5818aafe28f0b9",
+    "ssh_private_key_file": "/home/redux/.ssh/key-okindustrial-us-east-2",
+    "security_group_id": "sg-0c06088eeb26cff71",
+    "source_ami": "ami-0fb653ca2d3203ac1",
+    "playbook_file": "/home/redux/central-data-okindustrial/ansible-playbooks/setup-prod.yml",
+    "group_vars": "/home/redux/central-data-okindustrial/ansible-playbooks/environments/prod/group_vars",
+    "inventory_file": "/home/redux/central-data-okindustrial/ansible-playbooks/environments/prod/hosts",
+    "base_role_paths": "/home/redux/central-data-okindustrial/ansible-playbooks/roles/base",
+    "users_role_paths": "/home/redux/central-data-okindustrial/ansible-playbooks/roles/users",
+    "efs_mount_role_paths": "/home/redux/central-data-okindustrial/ansible-playbooks/roles/efs-mount",
+    "php_fpm_role_paths": "/home/redux/central-data-okindustrial/ansible-playbooks/roles/php8.0-fpm",
+    "apache_role_paths": "/home/redux/central-data-okindustrial/ansible-playbooks/roles/apache2",
+    "cloudwatch_monitoring_role_paths": "/home/redux/central-data-okindustrial/ansible-playbooks/roles/cloudwatch-monitoring",
+    "codedeploy_role_paths": "/home/redux/central-data-okindustrial/ansible-playbooks/roles/codedeploy",
+    "manifest_location": "/home/redux/packer-ami/prod_blog_manifest.json"
+    
+}

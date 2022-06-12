@@ -1,0 +1,130 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'Network Redux CloudFormation - Test parameters'
+
+Resources:
+  BuildEnvironment:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Environment
+      Name: '/build/environment/test'
+      Type: String
+      Value: test
+
+  ClientName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Client
+      Name: '/test/client'
+      Type: String
+      Value: rkc-test
+
+  VPCCIDR:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: VPC CIDR Block
+      Name: '/test/vpc/CidrBlock'
+      Type: String
+      Value: 10.20.0.0/16
+
+  AvailabilityZone1:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of AvailabiltyZone1
+      Name: '/test/AvailabiltyZone1'
+      Type: String
+      Value: us-east-2a
+  AvailabilityZone2:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description:  Name of AvailabiltyZone1
+      Name: '/test/AvailabiltyZone2'
+      Type: String
+      Value: us-east-2b
+
+  Publicsubnet1cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Public Subnet1
+      Name: '/test/subnet/publicsubnet1cidr'
+      Type: String
+      Value: 10.20.10.0/24
+  Publicsubnet2cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Public Subnet2
+      Name: '/test/subnet/publicsubnet2cidr'
+      Type: String
+      Value: 10.20.15.0/24
+
+  Privatesubnet1cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Private Subnet1
+      Name: '/test/subnet/privatesubnet1cidr'
+      Type: String
+      Value: 10.20.20.0/24
+  Privatesubnet2cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Private Subnet2
+      Name: '/test/subnet/privatesubnet2cidr'
+      Type: String
+      Value: 10.20.25.0/24      
+
+
+  Instancetype:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Instancetype
+      Name: '/test/instancetype'
+      Type: String
+      Value: 't3a.small'
+
+  VolumeSize:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of parameter to define the volumesize
+      Name: '/test/volumesize'
+      Type: String
+      Value: '50'
+
+
+  KeyPairName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of parameter to define the Test Keypair
+      Name: '/test/KeyPairName'
+      Type: String
+      Value: 'key-test-us-east-2.pub'
+
+  TestAMI:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of parameter to define the Test AMI
+      Name: '/test/AMI'
+      Type: String
+      Value: 'ami-0a63f96e85105c6d3'
+  Repository:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Bitbucket Repository
+      Name: '/test/repository'
+      Type: String
+      Value: 'cloudformation1'        
+  Branch:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Bitbucket Staging Branch
+      Name: '/test/branch'
+      Type: String
+      Value: 'test'
+  BitbucketConnectionARN:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Bitbucket to Pipeline connection ARN
+      Name: '/test/connectionarn'
+      Type: String
+      Value: 'arn:aws:codestar-connections:us-east-2:526803862683:connection/6325d2aa-f661-4a85-8656-08167c610545'      
+
+
