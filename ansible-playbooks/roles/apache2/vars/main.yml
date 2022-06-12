@@ -1,3 +1,0 @@
----
-domain_name: "{{env_domain_name}}"
-php1: "{{env_php_fpm_version1}}"

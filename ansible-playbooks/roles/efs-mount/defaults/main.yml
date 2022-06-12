@@ -1,4 +1,0 @@
----
-deploy_user: deploy
-deploy_group: deploy
-efs_mount_point: /shared-storage

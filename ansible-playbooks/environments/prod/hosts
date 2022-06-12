@@ -1,4 +1,0 @@
-[production]
-#10.30.20.88 ansible_python_interpreter=/usr/bin/python3 ansible_user="ubuntu" ansible_port=22 ansible_ssh_private_key_file="/home/redux/key-okindustrial-us-east-2"
-10.30.20.241 ansible_python_interpreter=/usr/bin/python3 ansible_user="ubuntu" ansible_port=22 ansible_ssh_private_key_file="/home/redux/key-okindustrial-us-east-2"
-10.30.25.153 ansible_python_interpreter=/usr/bin/python3 ansible_user="ubuntu" ansible_port=22 ansible_ssh_private_key_file="/home/redux/key-okindustrial-us-east-2"

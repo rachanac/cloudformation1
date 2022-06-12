@@ -1,7 +1,0 @@
-- hosts: control
-  become: true
-  gather_facts: false
-  roles:
-          #    - bastion
-          #- users
-    - cloudwatch-monitoring  
