@@ -1,12 +1,12 @@
----
-    AWSTemplateFormatVersion: '2010-09-09'
-    Description: "Network Redux CloudFormation- Test Security Group"
-    Parameters:
-      Environment:
-        Description: Test Environment
-        Type: 'AWS::SSM::Parameter::Value<String>'
-        Default: '/build/environment/test'
-      Client:
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Network Redux CloudFormation- Test Security Group"
+
+Parameters:
+  Environment:
+    Description: Test Environment
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/build/environment/test'
+  Client:
         Description: Client Name
         Type: 'AWS::SSM::Parameter::Value<String>'
         Default: '/test/client'  

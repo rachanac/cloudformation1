@@ -5,10 +5,10 @@ Resources:
   Instancetype:
     Type: AWS::SSM::Parameter
     Properties:
-      Description: Name of Test Instancetype
+      Description: Name of Instancetype
       Name: '/rkc-test/instancetype'
       Type: String
-      Value: 't3a.small'
+      Value: 't2.micro'
 
   VolumeSize:
     Type: AWS::SSM::Parameter
@@ -16,7 +16,7 @@ Resources:
       Description: Name of parameter to define the volumesize
       Name: '/rkc-test/volumesize'
       Type: String
-      Value: '50'
+      Value: '10'
 
 
   KeyPairName:
@@ -25,7 +25,7 @@ Resources:
       Description: Name of parameter to define the Test Keypair
       Name: '/rkc-test/KeyPairName'
       Type: String
-      Value: 'key-test-us-east-2.pub'
+      Value: 'rkc-test-keypair-ec2'
 
   TestAMI:
     Type: AWS::SSM::Parameter
@@ -33,25 +33,4 @@ Resources:
       Description: Name of parameter to define the Test AMI
       Name: '/rkc-test/AMI'
       Type: String
-      Value: 'ami-0a63f96e85105c6d3'
-  Repository:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: Name of Bitbucket Repository
-      Name: '/rkc-test/repository'
-      Type: String
-      Value: 'cloudformation1'        
-  Branch:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: Name of Bitbucket Staging Branch
-      Name: '/rkc-test/branch'
-      Type: String
-      Value: 'test'
-  BitbucketConnectionARN:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Description: Name of Bitbucket to Pipeline connection ARN
-      Name: '/rkc-test/connectionarn'
-      Type: String
-      Value: 'arn:aws:codestar-connections:us-east-2:526803862683:connection/6325d2aa-f661-4a85-8656-08167c610545'      
+      Value: 'ami-04505e74c0741db8d'

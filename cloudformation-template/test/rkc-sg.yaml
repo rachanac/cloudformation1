@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Network Redux CloudFormation- Test Security Group"
+
+Parameters:
+  Environment:
+    Description: Test Environment
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/build/environment/rkc-test'
+  Client:
+    Description: Client Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/client'  
+
+
+Resources:
+  sgrpbastionssh:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub 'sgrp-${Environment}-${Client}-ssh'
+      GroupDescription: Security Group for SSH access to Test environment
+      VpcId: 
+        Fn::ImportValue:
+           !Sub 'vpc-${Environment}-${Client}-${AWS::Region}-VPCId'
+      SecurityGroupIngress:
+      - IpProtocol: tcp 
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 3.7.237.29/32
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 10.20.10.210/30
+      Tags:
+        - Key: Name
+          Value: !Sub 'sgrp-${Environment}-${Client}-ssh'
+
+Outputs:
+  sgrpbastionssh:
+    Value: !Ref sgrpbastionssh
+    Export:
+      Name: !Sub 'sgrp-${Environment}-${Client}-ssh'

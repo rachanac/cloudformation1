@@ -5,10 +5,9 @@ Parameters:
   Client:
     Description: Client Name
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/client'  
+    Default: '/rkc-test/client'  
 
 Resources:
-
   CreateTagRolePolicies:
     Type: AWS::IAM::Policy
     Properties:
@@ -34,7 +33,7 @@ Resources:
             Resource: arn:aws:ssm:*:*:parameter/AmazonCloudWatch-*
       Roles:
         - !Ref 'BastionRole'
-        - !Ref 'WebRole'
+
   CreateSGRolePolicies:
     Type: AWS::IAM::Policy
     Properties:
@@ -67,23 +66,6 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
-  WebRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      RoleName: !Sub 'iam-${Client}-web-role'
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - ec2.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Path: /
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess'
-        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM'
   BastionInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
@@ -91,10 +73,3 @@ Resources:
       Path: /
       Roles:
         - Ref: BastionRole
-  WebInstanceProfile:
-    Type: 'AWS::IAM::InstanceProfile'
-    Properties:
-      InstanceProfileName: !Sub 'iam-${Client}-web-profile'
-      Path: /
-      Roles:
-        - Ref: WebRole
