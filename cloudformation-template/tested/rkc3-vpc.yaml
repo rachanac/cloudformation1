@@ -1,0 +1,228 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ' CloudFormation - Rachana Test - VPC Stack '
+
+Parameters:
+  Environment:
+    Description: Test Environment
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/build/environment/rkc-test'
+
+  VPCCIDRBLOCK:
+    Description: VPC CidrBlock
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/vpc/CidrBlock'
+
+  Client:
+    Description: Client Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/client'
+
+
+  AvailabiltyZone1:
+    Description: Set Availability Zone 1
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/AvailabiltyZone1'
+  AvailabiltyZone2:
+    Description: Set Availability Zone 2
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/AvailabiltyZone2'
+
+  PublicSubnet1cidr:
+    Description: Public subnet ID for AZ1.
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/subnet/publicsubnet1cidr'
+  PublicSubnet2cidr:
+    Description: Public subnet ID for AZ2.
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/subnet/publicsubnet2cidr'
+
+  PrivateSubnet1cidr:
+    Description: Private subnet ID for AZ1.
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/subnet/privatesubnet1cidr'
+  PrivateSubnet2cidr:
+    Description: Private subnet ID for AZ2.
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/subnet/privatesubnet2cidr'
+    
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCIDRBLOCK
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
+      Tags:
+      - Key: Name
+        Value: !Sub 'vpc-${Environment}-${Client}-${AWS::Region}'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub 'igw-${Environment}-${Client}-${AWS::Region}'
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+  
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Ref: PublicSubnet1cidr
+      AvailabilityZone:
+        Ref: AvailabiltyZone1
+      Tags:
+      - Key: Name
+        Value: !Sub 'subnet-${Environment}-${Client}-public-${AWS::Region}-az1'
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Ref: PublicSubnet2cidr
+      AvailabilityZone:
+        Ref: AvailabiltyZone2
+      Tags:
+      - Key: Name
+        Value: !Sub 'subnet-${Environment}-${Client}-public-${AWS::Region}-az2'
+
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'rtb-${Environment}-${Client}-public-${AWS::Region}-az1'
+
+  PublicRouteTableAssociation:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+
+  PublicSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet1
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  PublicSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet2
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Ref: PrivateSubnet1cidr
+      AvailabilityZone:
+        Ref: AvailabiltyZone1
+      Tags:
+      - Key: Name
+        Value: !Sub 'subnet-${Environment}-${Client}-private-${AWS::Region}-az1'
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock:
+        Ref: PrivateSubnet2cidr
+      AvailabilityZone:
+        Ref: AvailabiltyZone2
+      Tags:
+      - Key: Name
+        Value: !Sub 'subnet-${Environment}-${Client}-private-${AWS::Region}-az2'        
+
+  PrivateSubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet1
+      RouteTableId:
+        Ref: PrivateRouteTable
+
+  PrivateSubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnet2
+      RouteTableId:
+        Ref: PrivateRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: !Sub 'rtb-${Environment}-${Client}-private-${AWS::Region}-az1'
+
+Outputs:
+  StackName:
+    Description: Name of the stack as specified with the cfn-create-stack command.
+    Value:
+      Ref: 'AWS::StackName'
+  RegionName:
+    Description: Name of the stack as specified with the cfn-create-stack command.
+    Value:
+      Ref: 'AWS::Region'
+  VPCID:
+    Description: VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub 'vpc-${Environment}-${Client}-${AWS::Region}-VPCId'
+  PublicRouteTable:
+    Description: route table public
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Sub 'rtb-${Environment}-${Client}-public-${AWS::Region}'
+  InternetGatewayID:
+    Description: InternetGateway
+    Value: !Ref InternetGateway
+  PublicSubnetId1:
+    Value: !Ref PublicSubnet1
+    Export:
+      Name: !Sub 'subnet-${Environment}-${Client}-public-${AWS::Region}-az1'
+  PublicSubnetId2:
+    Value: !Ref PublicSubnet2
+    Export:
+      Name: !Sub 'subnet-${Environment}-${Client}-public-${AWS::Region}-az2'
+  PrivateRouteTable:
+    Description: route table Private
+    Value: !Ref PrivateRouteTable
+    Export:
+      Name: !Sub 'rtb-${Environment}-${Client}-private-${AWS::Region}'
+  PrivateSubnetId1:
+    Value: !Ref PrivateSubnet1
+    Export:
+      Name: !Sub 'subnet-${Environment}-${Client}-private-${AWS::Region}-az1'
+  PrivateSubnetId2:
+    Value: !Ref PrivateSubnet2
+    Export:
+      Name: !Sub 'subnet-${Environment}-${Client}-private-${AWS::Region}-az2'      
