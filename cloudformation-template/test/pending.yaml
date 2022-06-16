@@ -1,0 +1,9 @@
+  KeyPairName:
+    Description: Key file used to SSH into servers
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/KeyPairName'
+
+  KeyPairName:
+    Value: !Ref KeyPairName
+    Export:
+      Name: !Sub 'keypair-${Environment}-${Client}-${AWS::Region}'

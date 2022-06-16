@@ -1,55 +1,49 @@
----
 AWSTemplateFormatVersion: 2010-09-09
-Description: 'Network Redux CloudFormation - Test - VPC Stack '
+Description: ' CloudFormation - Rachana Test - VPC Stack '
 
 Parameters:
   Environment:
     Description: Test Environment
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/build/environment/test'
+    Default: '/build/environment/rkc-test'
 
   VPCCIDRBLOCK:
     Description: VPC CidrBlock
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/vpc/CidrBlock'
+    Default: '/rkc-test/vpc/CidrBlock'
 
   Client:
     Description: Client Name
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/client'
+    Default: '/rkc-test/client'
 
 
   AvailabiltyZone1:
     Description: Set Availability Zone 1
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/AvailabiltyZone1'
+    Default: '/rkc-test/AvailabiltyZone1'
   AvailabiltyZone2:
     Description: Set Availability Zone 2
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/AvailabiltyZone2'
-
-  KeyPairName:
-    Description: Key file used to SSH into servers
-    Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/KeyPairName'
+    Default: '/rkc-test/AvailabiltyZone2'
 
   PublicSubnet1cidr:
     Description: Public subnet ID for AZ1.
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/subnet/publicsubnet1cidr'
+    Default: '/rkc-test/subnet/publicsubnet1cidr'
   PublicSubnet2cidr:
     Description: Public subnet ID for AZ2.
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/subnet/publicsubnet2cidr'
+    Default: '/rkc-test/subnet/publicsubnet2cidr'
 
   PrivateSubnet1cidr:
     Description: Private subnet ID for AZ1.
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/subnet/privatesubnet1cidr'
+    Default: '/rkc-test/subnet/privatesubnet1cidr'
   PrivateSubnet2cidr:
     Description: Private subnet ID for AZ2.
     Type: 'AWS::SSM::Parameter::Value<String>'
-    Default: '/test/subnet/privatesubnet2cidr'
+    Default: '/rkc-test/subnet/privatesubnet2cidr'
     
 
 Resources:
@@ -219,10 +213,6 @@ Outputs:
     Value: !Ref PublicSubnet2
     Export:
       Name: !Sub 'subnet-${Environment}-${Client}-public-${AWS::Region}-az2'
-  KeyPairName:
-    Value: !Ref KeyPairName
-    Export:
-      Name: !Sub 'keypair-${Environment}-${Client}-${AWS::Region}'
   PrivateRouteTable:
     Description: route table Private
     Value: !Ref PrivateRouteTable
