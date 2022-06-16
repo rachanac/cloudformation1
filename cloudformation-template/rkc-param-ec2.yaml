@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CloudFormation - Test parameters'
+
+Resources:
+  Instancetype:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Instancetype
+      Name: '/rkc-test/instancetype'
+      Type: String
+      Value: 't2.micro'
+
+  VolumeSize:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of parameter to define the volumesize
+      Name: '/rkc-test/volumesize'
+      Type: String
+      Value: '10'
+
+
+  KeyPairName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of parameter to define the Test Keypair
+      Name: '/rkc-test/KeyPairName'
+      Type: String
+      Value: 'rkc-test-keypair-ec2'
+
+  TestAMI:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of parameter to define the Test AMI
+      Name: '/rkc-test/AMI'
+      Type: String
+      Value: 'ami-04505e74c0741db8d'

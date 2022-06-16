@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CloudFormation - Test - Web Stack '
+
+Parameters:
+  Environment:
+    Description: Test Environment
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/build/environment/rkc-test'
+  Client:
+    Description: Client Name
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/client'
+  AvailabiltyZone1:
+    Description: Set Availability Zone 1
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/AvailabiltyZone1'
+  AvailabiltyZone2:
+    Description: Set Availability Zone 2
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/AvailabiltyZone2'
+
+  KeyPairName:
+    Description: Key file used to SSH into servers
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/KeyPairName'
+
+  InstanceType:
+    Description: 'Name of Parameter to define the instance type.'
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/instancetype'  
+  VolumeSize:  
+    Description: 'Name of Parameter to define the volumesize.'
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/volumesize' 
+  WebAMI:  
+    Description: 'Name of Parameter to define the AMI.'
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: '/rkc-test/AMI' 
+
+Resources:
+  Ec2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !Ref WebAMI
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Sub 'iam-${Client}-bastion-profile'         
+      BlockDeviceMappings:
+        -
+          DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeType: "gp2"
+            DeleteOnTermination: "true"
+            VolumeSize: !Ref VolumeSize
+            Encrypted: "true"
+      UserData:
+        'Fn::Base64':
+          !Sub |
+            #!/bin/bash -xe
+            adduser rachanac
+            echo "rachanac ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/rachanac
+            mkdir -p /home/rachanac/.ssh
+            chown rachanac.rachanac /home/rachanac/.ssh
+            touch /home/rachanac/.ssh/authorized_keys
+            echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMaP4HF26Q35DxuHqmWj3UYNaz2GZVyKMy8TykJ9LXu657BNPjwRVoAjJ8BADklPYlbIM7YoVrjQiw2Q0gCvpZNTKCKVgO9HuCcLCLCQy6lDKNSdpK3Qe1Q8BTfvRFxcAy0nw9KyXuq6vfkTlzU9wtzrXjEWkNn/JQEhELSXL45PZWxuulWCLSIWqlb3NnukdwVz0wT9zp5QY+vRmRR+McZKyROXFrCUrTyuA8Sx1UFy4cmf/yNxcYA2lksP6vsLxZ/047YRnrgb9OHWcW4gQOtsmQrD6PPZ7i+xnjSOHyx2YZlr7KiASeaRmzfjDME6pVsfXFXuY0So6rpQnIiXD9 rachana@nr-oprs-bastion-001.dc4.sea.networkredux.net" >> /home/rachanac/.ssh/authorized_keys
+            chown rachanac.rachanac /home/rachanac/.ssh/authorized_keys
+            chmod 700 /home/rachanac/.ssh
+            chmod 600 /home/rachanac/.ssh/authorized_keys               
+
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "False"
+          DeviceIndex: "0"
+          GroupSet:
+            - Fn::ImportValue:
+                Fn::Sub: 'sgrp-${Environment}-${Client}-ssh'
+          SubnetId:
+              Fn::ImportValue:
+               !Sub 'subnet-${Environment}-${Client}-public-${AWS::Region}-az1'
+      Tags:
+      - Key: Name
+        Value: !Sub 'webserver-${Environment}-${Client}'
+      - Key: Environment
+        Value: Test
+  IPAddress:
+    Type: "AWS::EC2::EIP"
+    Properties:
+      InstanceId:
+        Ref: "Ec2Instance"
+  IPAssoc:
+    Type: "AWS::EC2::EIPAssociation"
+    Properties:
+      InstanceId:
+        Ref: "Ec2Instance"
+      EIP:
+        Ref: "IPAddress"

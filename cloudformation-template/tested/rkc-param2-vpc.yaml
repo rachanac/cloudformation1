@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CloudFormation - Rachana Network Test parameters'
+
+Resources:
+  VPCCIDR:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: VPC CIDR Block
+      Name: '/rkc-test/vpc/CidrBlock'
+      Type: String
+      Value: 10.10.0.0/16
+
+  AvailabilityZone1:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of AvailabiltyZone1
+      Name: '/rkc-test/AvailabiltyZone1'
+      Type: String
+      Value: us-east-1a
+  AvailabilityZone2:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description:  Name of AvailabiltyZone1
+      Name: '/rkc-test/AvailabiltyZone2'
+      Type: String
+      Value: us-east-1b
+
+  Publicsubnet1cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Public Subnet1
+      Name: '/rkc-test/subnet/publicsubnet1cidr'
+      Type: String
+      Value: 10.10.0.0/26
+  Publicsubnet2cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Public Subnet2
+      Name: '/rkc-test/subnet/publicsubnet2cidr'
+      Type: String
+      Value: 10.10.0.64/26
+
+  Privatesubnet1cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Private Subnet1
+      Name: '/rkc-test/subnet/privatesubnet1cidr'
+      Type: String
+      Value: 10.10.0.128/26
+  Privatesubnet2cidr:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Test Private Subnet2
+      Name: '/rkc-test/subnet/privatesubnet2cidr'
+      Type: String
+      Value: 10.10.0.192/26      

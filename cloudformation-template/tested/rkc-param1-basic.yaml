@@ -1,0 +1,19 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'CloudFormation - Rachana Network Test parameters'
+
+Resources:
+  BuildEnvironment:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Environment
+      Name: '/build/environment/rkc-test'
+      Type: String
+      Value: test
+
+  ClientName:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: Name of Client
+      Name: '/rkc-test/client'
+      Type: String
+      Value: rkc
