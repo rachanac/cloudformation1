@@ -1,0 +1,45 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Resources:
+  EC2Instances1:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-04505e74c0741db8d
+      KeyName: rkc-keypair-ec2
+      BlockDeviceMappings:
+      - DeviceName: /dev/sdm
+        Ebs:
+          DeleteOnTermination: true
+          VolumeSize: 10
+      SecurityGroups:
+        - !Ref ec2sgsshhttp
+
+  EC2Instances2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-04505e74c0741db8d
+      KeyName: rkc-keypair-ec2
+      BlockDeviceMappings:
+      - DeviceName: /dev/sdm
+        Ebs:
+          DeleteOnTermination: true
+          VolumeSize: 10
+      SecurityGroups:
+        - !Ref ec2sgsshhttp
+
+  ec2sgsshhttp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH Access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          ToPort: 22
+          FromPort: 22
+          CidrIp: 3.7.237.29/32
+        - IpProtocol: tcp
+          ToPort: 80
+          FromPort: 80
+          CidrIp: 0.0.0.0/0
